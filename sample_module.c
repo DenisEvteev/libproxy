@@ -19,15 +19,22 @@ static int my_major = MAJOR_DEFAULT;
 static int my_major = 0;
 #endif
 
+
+extern void init_storage(void);
+extern void register_client(struct file *filp);
+extern ssize_t add_msg_queue(const char __user *buff, size_t count, loff_t *offp);
+
 static dev_t first;
 static struct cdev *my_cdev;
+
+extern size_t number_clients;
 
 ssize_t dread(struct file *filp, char __user *buff, size_t count, loff_t *offp) {
 	return 0;
 }
 
 ssize_t dwrite(struct file *filp, const char __user *buff, size_t count, loff_t *offp) {
-	return 0;
+	return add_msg_queue(buff, count, offp);
 }
 
 int drelease(struct inode *inode, struct file *filp) {
@@ -35,6 +42,7 @@ int drelease(struct inode *inode, struct file *filp) {
 }
 
 int dopen(struct inode *inode, struct file *filp) {
+	register_client(filp);
 	return 0;
 }
 
@@ -66,6 +74,12 @@ static int __init initialize_service(void)
 	cdev_init(my_cdev, &fops);
 	my_cdev->owner = THIS_MODULE;
 
+	/**
+	 * UPD: we are to initialize our global queue
+	 * before adding device in the kernel storage
+	 * before calling cdev_add function!
+	 * */
+	init_storage();
 	if (cdev_add(my_cdev, first, 1) != 0)
 		goto fail;
 

@@ -1,5 +1,5 @@
 ifneq ($(KERNELRELEASE),)
-	testmodule-objs := sample_module.o kerlib.o
+	testmodule-objs := sample_module.o kerlib.o fifo.o
 	obj-m := testmodule.o
 else
 	KERNELDIR ?= /lib/modules/$(shell uname -r)/build
